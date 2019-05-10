@@ -1,0 +1,310 @@
+{
+  "name": "LIVY",
+  "label": "Livy",
+  "description": "Apache Livy is a REST Service for Apache Spark. This service runs a Livy REST service.",
+  "version": "0.6.0",
+  "compatibility": {
+    "cdhVersion": {
+      "min": "5.14.0"
+    }
+  },
+  "runAs": {
+    "user": "livy",
+    "group": "livy",
+    "principal": "livy"
+  },
+  "inExpressWizard": true,
+  "icon": "images/icon.png",
+  "parcel": {
+    "requiredTags": [
+      "livy",
+      "spark"
+    ],
+    "optionalTags": [
+      "spark2",
+      "livy-plugin"
+    ]
+  },
+  "serviceDependencies": [
+    {
+      "name": "YARN",
+      "required": "true"
+    },
+    {
+      "name": "HIVE",
+      "required": "false"
+    },
+    {
+      "name": "SPARK2_ON_YARN",
+      "required": "false"
+    },
+    {
+      "name": "SPARK_ON_YARN",
+      "required": "true"
+    }
+  ],
+  "hdfsDirs": [
+    {
+      "name": "CreateLivyUserDirCommand",
+      "label": "Create Livy User Dir",
+      "description": "Creates the Livy user directory in HDFS.",
+      "directoryDescription": "Livy HDFS user directory",
+      "path": "/user/${principal}",
+      "permissions": "0751"
+    }
+  ],
+  "serviceInit": {
+    "preStartSteps": [
+      {
+        "commandName": "CreateLivyUserDirCommand"
+      }
+    ]
+  },
+  "parameters": [],
+  "rolesWithExternalLinks" : ["LIVY_REST_SERVER"],
+  "roles": [
+    {
+      "name": "LIVY_REST_SERVER",
+      "label": "Livy REST Server",
+      "pluralLabel": "Livy REST Servers",
+      "jvmBased": true,
+      "startRunner": {
+        "program": "scripts/control.sh",
+        "args": [
+          "start"
+        ],
+        "environmentVariables": {
+          "LIVY_LOG_DIR": "${log_dir}",
+          "LIVY_MEMORY": "${livy_max_heapsize}",
+          "ENABLE_SPNEGO": "${livy_server_spnego_enabled}",
+          "ENABLE_ACCESS_CONTROL": "${livy_server_access_control_enabled}",
+          "ACCESS_CONTROL_USERS": "${livy_server_access_control_users}",
+          "LIVY_SUPERUSERS": "${livy_server_superusers}",
+          "HIVE_CONTEXT_ENABLE": "${livy_repl_enable_hive_context}",
+          "LIVY_SPARK_VERSION": "${livy_spark_version}",
+          "SSL_ENABLED": "${ssl_enabled}",
+          "KEYSTORE_LOCATION": "${ssl_server_keystore_location}",
+          "KEYSTORE_PASSWORD": "${ssl_server_keystore_keypassword}",
+          "KEYSTORE_KEYPASSWORD": "${ssl_server_keystore_password}",
+          "IVY_DATA_DIR": "${ivy_data_dir}"
+        }
+      },
+      "kerberosPrincipals": [
+        {
+          "name": "LIVY_PRINCIPAL",
+          "primary": "${principal}",
+          "instance": "${host}"
+        },
+        {
+          "name": "SPNEGO_PRINCIPAL",
+          "primary": "HTTP",
+          "instance": "${host}"
+        }
+      ],
+      "commands": [],
+      "topology": {
+        "minInstances": 1,
+        "maxInstances": 2
+      },
+      "logging": {
+        "configFilename": "livy-conf/log4j.properties",
+        "dir": "/var/log/livy",
+        "filename": "livy-rest-server-${host}.log",
+        "modifiable": true,
+        "loggingType": "log4j"
+      },
+      "parameters": [
+        {
+          "name": "livy_server_port",
+          "label": "Livy REST Server Port",
+          "configName": "livy.server.port",
+          "description": "The port of the livy server REST API",
+          "required": "true",
+          "type": "port",
+          "default": 8998
+        },
+        {
+          "name": "livy_spark_master",
+          "label": "Livy Spark Master",
+          "configName": "livy.spark.master",
+          "description": "What spark master Livy sessions should use.",
+          "type": "string_enum",
+          "validValues": [
+            "yarn"
+          ],
+          "default": "yarn"
+        },
+        {
+          "name": "livy_spark_deploy_mode",
+          "label": "Livy Spark Deploy Mode",
+          "configName": "livy.spark.deploy-mode",
+          "description": "What spark deploy mode Livy sessions should use.",
+          "type": "string_enum",
+          "validValues": [
+            "client",
+            "cluster"
+          ],
+          "default": "client"
+        },
+        {
+          "name": "livy_spark_version",
+          "label": "Livy Spark Version",
+          "configName": "spark.version",
+          "description": "Which version of Spark should Livy use (Spark2 requires you to have configured Livy to have a Spark2 service dependency).",
+          "type": "string_enum",
+          "validValues": [
+            "spark",
+            "spark2"
+          ],
+          "default": "spark"
+        },
+        {
+          "name": "livy_impersonation_enabled",
+          "label": "Livy Impersonation Enabled",
+          "configName": "livy.impersonation.enabled",
+          "description": "If livy should impersonate the requesting users when creating a new session.",
+          "required": "false",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "livy_repl_enable_hive_context",
+          "label": "Livy Hive Context Enabled",
+          "configName": "livy.repl.enable-hive-context",
+          "description": "Whether to enable HiveContext in livy interpreter.",
+          "required": "false",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "livy_max_heapsize",
+          "label": "Java Heap Size of Livy Server in Bytes",
+          "description": "Maximum size for the Java process heap memory. Passed to Java -Xmx. Measured in bytes.",
+          "required": "true",
+          "type": "memory",
+          "unit": "bytes",
+          "min": 67108864,
+          "default": 268435456
+        },
+        {
+          "name": "livy_server_spnego_enabled",
+          "label": "Enable User Authentication",
+          "description": "Enables user authentication using SPNEGO (requires Kerberos), and enables access control to Spark.",
+          "required": "false",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "livy_server_access_control_enabled",
+          "label": "Enable Access Control",
+          "description": "Enables user access control to restrict user access to those given in Access Control Users.",
+          "required": "false",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "ivy_data_dir",
+          "label": "Ivy Data Directory",
+          "description": "The location used by Ivy to store Jar dependencies.",
+          "required": "false",
+          "type": "path",
+          "pathType": "localDataDir",
+          "default": "/var/local/livy/ivy",
+          "required": "true",
+          "minLength": 1,
+          "configurableInWizard": true
+        },
+        {
+          "name": "livy_server_access_control_users",
+          "label": "Access Control Users",
+          "description": "List of users allowed to access Livy if Access Control is enabled.",
+          "required": "false",
+          "type": "string_array",
+          "default": [
+            "livy",
+            "zeppelin"
+          ]
+        },
+        {
+          "name": "livy_server_host",
+          "label": "Livy Bind Address",
+          "configName": "livy.server.host",
+          "description": "What host address to start the server on.",
+          "required": "false",
+          "type": "string",
+          "default": "0.0.0.0"
+        },
+        {
+          "name": "livy_server_superusers",
+          "label": "Livy Superusers",
+          "description": "List of users allowed to proxy to any users (requires User Authentication).",
+          "required": "false",
+          "type": "string_array",
+          "default": [
+            "zeppelin"
+          ]
+        }
+      ],
+      "sslServer": {
+        "keyIdentifier": "livy_rest_server",
+        "enabledConfigName": "livy.ssl",
+        "keystorePasswordCredentialProviderCompatible": false,
+        "keystorePasswordScriptBased": false,
+        "keystoreKeyPasswordScriptBased": false,
+        "keystoreKeyPasswordCredentialProviderCompatible": false,
+        "keyPasswordOptionality": "required"
+      },
+      "externalLink" : {
+        "name" : "livy_server_address",
+        "label" : "Livy Server Web UI",
+        "url" : "http://${host}:${livy_server_port}",
+        "secureUrl" : "https://${host}:${livy_server_port}"
+      },
+      "configWriter": {
+        "generators": [
+          {
+            "filename": "livy-conf/livy.conf",
+            "configFormat": "properties",
+            "includedParams": [
+              "livy_server_port",
+              "livy_spark_master",
+              "livy_spark_deploy_mode",
+              "livy_impersonation_enabled",
+              "livy_repl_enable_hive_context",
+              "livy_server_host"
+            ]
+          }
+        ],
+        "auxConfigGenerators": [
+          {
+            "filename": "livy-conf/livy-env.sh",
+            "sourceFilename": "aux/client/livy-env.sh"
+          }
+        ],
+        "peerConfigGenerators" : [
+          {
+            "filename": "livy-conf/server.properties",
+            "params": ["livy_server_port", "ssl_enabled", "livy_spark_version" ],
+            "roleName": "LIVY_REST_SERVER"
+          }
+        ]
+      }
+    }
+  ],
+  "gateway" : {
+    "alternatives" : {
+      "name" : "livy-conf",
+      "priority" : 51,
+      "linkRoot" : "/etc/livy"
+    },
+    "configWriter" : {
+       "peerConfigGenerators" : [
+          {
+            "filename": "livy-conf/server.properties",
+            "params": ["livy_server_port", "ssl_enabled", "livy_spark_version" ],
+            "roleName": "LIVY_REST_SERVER"
+          }
+        ]
+     }
+  }
+}

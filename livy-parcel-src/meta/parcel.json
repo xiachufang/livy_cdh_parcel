@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "name": "LIVY",
+  "version": "%VERSION%",
+  "setActiveSymlink": true,
+
+  "provides": [
+    "livy"
+  ],
+
+  "depends": "CDH",
+  "replaces": "",
+  "conflicts": "",
+
+  "scripts": {
+    "defines": "livy_env.sh"
+  },
+  "groups": ["livy"],
+  "users": {
+    "livy": {
+      "longname": "Livy user", 
+      "home": "/var/lib/livy", 
+      "shell": "/sbin/nologin", 
+      "extra_groups": []
+    }
+  },
+  "packages": [],
+  "components": []
+}
