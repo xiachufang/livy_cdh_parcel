@@ -7,6 +7,12 @@ LIVY_TAG="${LIVY_VERSION}-incubating"
 LIVY_URL="https://www-eu.apache.org/dist/incubator/livy/${LIVY_TAG}/apache-livy-${LIVY_TAG}-bin.zip"
 LIVY_SHA512_URL="${LIVY_URL}.sha512"
 
+
+CLOUDERA_CSD_DIR="${CLOUDERA_CSD_DIR:-/opt/cloudera/csd}"
+CLOUDERA_PARCEL_REPO_DIR="${CLOUDERA_PARCEL_REPO_DIR:-/opt/cloudera/parcel-repo}"
+CLOUDERA_MANAGER_USER="cloudera-scm"
+CLOUDERA_MANAGER_GROUP="cloudera-scm"
+
 my_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 livy_dl_dest="${my_dir}/download"
@@ -70,6 +76,14 @@ make_clean() {
   [ -d "${livy_tgt_dest}" ] && rm -rf "${livy_tgt_dest}"
 }
 
+install() {
+  csdfile="${livy_tgt_dest}/LIVY-${LIVY_VERSION}.jar"
+  livy_parcel_sha="${livy_parcel}.sha"
+  [ -f "${csdfile}" ] && cp "${csdfile}" "${CLOUDERA_CSD_DIR}" && chown "${CLOUDERA_MANAGER_USER}:${CLOUDERA_MANAGER_GROUP}" "${CLOUDERA_CSD_DIR}/`basename ${csdfile}`"
+  [ -f "${livy_parcel_sha}" ] && cp "${livy_parcel_sha}" "${CLOUDERA_PARCEL_REPO_DIR}" && chown "${CLOUDERA_MANAGER_USER}:${CLOUDERA_MANAGER_GROUP}" "${CLOUDERA_PARCEL_REPO_DIR}/`basename ${livy_parcel_sha}`"
+  [ -f "${livy_parcel}" ] && cp "${livy_parcel}" "${CLOUDERA_PARCEL_REPO_DIR}" && chown "${CLOUDERA_MANAGER_USER}:${CLOUDERA_MANAGER_GROUP}" "${CLOUDERA_PARCEL_REPO_DIR}/`basename ${livy_parcel}`"
+}
+
 case "$1" in
 clean)
   make_clean
@@ -80,11 +94,14 @@ parcel)
 csd)
   build_livy_csd
   ;;
+install)
+  install
+  ;;
 all)
   build_livy_parcel
   build_livy_csd
   ;;
 *)
-  echo "Usage: $0 [all|parcel|csd|clean]"
+  echo "Usage: $0 [all|parcel|csd|clean|install]"
   ;;
 esac
