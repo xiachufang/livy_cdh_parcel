@@ -18,10 +18,10 @@
   "parcel": {
     "requiredTags": [
       "livy",
-      "spark"
+      "spark2"
     ],
     "optionalTags": [
-      "spark2",
+      "spark",
       "livy-plugin"
     ]
   },
@@ -36,11 +36,11 @@
     },
     {
       "name": "SPARK2_ON_YARN",
-      "required": "false"
+      "required": "true"
     },
     {
       "name": "SPARK_ON_YARN",
-      "required": "true"
+      "required": "false"
     }
   ],
   "hdfsDirs": [
@@ -156,7 +156,7 @@
             "spark",
             "spark2"
           ],
-          "default": "spark"
+          "default": "spark2"
         },
         {
           "name": "livy_impersonation_enabled",
