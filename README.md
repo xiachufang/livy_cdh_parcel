@@ -13,6 +13,14 @@ Use the following commands to build the CSD and parcel:
 
 ### Parcel installation ###
 
+#### Install via script
+
+```bash
+sudo CLOUDERA_CSD_DIR=/opt/cloudera/csd CLOUDERA_PARCEL_REPO_DIR=/opt/cloudera/parcel-repo ./build.sh install
+```
+
+#### Install manually
+
 0. The CSD, parcel and checksum files are generated in the `target` directory.
 1. Copy the generated CSD file to `/opt/cloudera/csd` on the CM Manager node.
 2. Copy the `LIVY-0.6.0-el7.parcel` parcel file to `/opt/cloudera/parcel-repo` on the CM Manager node.
