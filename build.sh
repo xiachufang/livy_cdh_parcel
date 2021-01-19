@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+LINUX_DISTRO=xenial
 LIVY_VERSION=0.6.0
 LIVY_TAG="${LIVY_VERSION}-incubating"
 LIVY_URL="https://www-eu.apache.org/dist/incubator/livy/${LIVY_TAG}/apache-livy-${LIVY_TAG}-bin.zip"
@@ -15,7 +16,7 @@ livy_archive="${livy_dl_dest}/$( basename $LIVY_URL )"
 livy_sha512="${livy_dl_dest}/$( basename $LIVY_SHA512_URL )"
 livy_org_folder="${livy_bld_dest}/$( basename $livy_archive .zip )"
 livy_folder="${livy_bld_dest}/LIVY-${LIVY_VERSION}"
-livy_parcel="${livy_tgt_dest}/LIVY-${LIVY_VERSION}-el7.parcel"
+livy_parcel="${livy_tgt_dest}/LIVY-${LIVY_VERSION}-${LINUX_DISTRO}.parcel"
 livy_manifest="${livy_tgt_dest}/manifest.json"
 livy_csd_src="${my_dir}/livy-csd-src"
 livy_parcel_src="${my_dir}/livy-parcel-src"
